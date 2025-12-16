@@ -1,0 +1,92 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f4f6fb;
+  font-family: Arial, sans-serif;
+}
+
+.login-card {
+  background: #ffffff;
+  padding: 32px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  width: 360px;
+  max-width: 90%;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  text-align: center;
+}
+
+h2 {
+  margin: 0 0 24px;
+  font-size: 18px;
+  font-weight: normal;
+  text-align: center;
+  color: #555;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: #333;
+}
+
+input {
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.15);
+  }
+}
+
+button {
+  margin-top: 8px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  background: #1976d2;
+  color: white;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #145ca4;
+  }
+}
+
+.guest-btn {
+  margin-top: 8px;
+  background: #e0e0e0;
+  color: #333;
+
+  &:hover {
+    background: #cacaca;
+  }
+}
+
+.error {
+  margin-top: 12px;
+  color: #d32f2f;
+  font-size: 13px;
+  text-align: center;
+}

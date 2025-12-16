@@ -1,0 +1,39 @@
+<div class="lens-detail" *ngIf="lens; else notFound">
+  <div class="card">
+    <h1>{{ lens.name }}</h1>
+
+    <div class="lens-meta">
+      <p><strong>Тип съёмки:</strong> {{ lens.type }}</p>
+      <p><strong>Фокусное расстояние:</strong> {{ lens.focalLength }}</p>
+      <p><strong>Диафрагма:</strong> {{ lens.aperture }}</p>
+      <p><strong>Совместимость:</strong> {{ lens.compatibility }}</p>
+      <p><strong>Бренд:</strong> {{ lens.brand }}</p>
+    </div>
+
+    <p class="price-row">
+      Цена: {{ lens.price | number:'1.0-0' }} ₽
+    </p>
+
+    <p class="lens-description">
+      {{ lens.description }}
+    </p>
+
+    <div class="actions">
+      <button (click)="addToFavorites()">Добавить в избранное</button>
+      <button class="secondary" (click)="closeModal()">Закрыть</button>
+    </div>
+
+    <p *ngIf="addedToFavorites" class="fav-message">
+      Объектив добавлен в избранное.
+    </p>
+  </div>
+</div>
+
+<ng-template #notFound>
+  <div class="lens-detail">
+    <div class="not-found">
+      <h1>Объектив не найден</h1>
+      <p>Возможно, ссылка устарела или объектив удалён.</p>
+    </div>
+  </div>
+</ng-template>

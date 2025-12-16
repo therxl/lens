@@ -1,0 +1,167 @@
+<div class="home-page">
+
+  <!-- Блок типов съёмки -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Тип съемки</h2>
+      <button *ngIf="selectedType" class="link-btn" (click)="resetType()">
+        Сбросить выбор
+      </button>
+    </div>
+
+    <div class="shooting-grid">
+      <div
+        class="shooting-card"
+        [class.selected]="selectedType === 'portrait'"
+        (click)="selectType('portrait')"
+      >
+        <img src="assets/icons/portrait.png" alt="Portrait icon">
+        <div class="card-content">
+          <h3>Портретная съемка</h3>
+          <p>Мягкое размытие фона, красивые портреты.</p>
+        </div>
+      </div>
+      <div
+        class="shooting-card"
+        [class.selected]="selectedType === 'landscape'"
+        (click)="selectType('landscape')"
+      >
+        <img src="assets/icons/landscape.png" alt="Landscape icon">
+        <div class="card-content">
+          <h3>Пейзажная съемка</h3>
+          <p>Широкий угол обзора и высокая детализация.</p>
+        </div>
+      </div>
+      <div
+        class="shooting-card"
+        [class.selected]="selectedType === 'macro'"
+        (click)="selectType('macro')"
+      >
+        <img src="assets/icons/macro.png" alt="Macro icon">
+        <div class="card-content">
+          <h3>Макро съемка</h3>
+          <p>Съемка мелких объектов с большим увеличением.</p>
+        </div>
+      </div>
+      <div
+        class="shooting-card"
+        [class.selected]="selectedType === 'sport'"
+        (click)="selectType('sport')"
+      >
+        <img src="assets/icons/sport.png" alt="Sport icon">
+        <div class="card-content">
+          <h3>Спортивная съёмка</h3>
+          <p>Быстрый автофокус и длинное фокусное.</p>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Modal -->
+    <div class="modal-overlay" *ngIf="selectedLens" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <app-lens-detail [lens]="selectedLens" (close)="closeModal()"></app-lens-detail>
+      </div>
+    </div>
+  </div>
+
+  <!-- Фильтр -->
+  <div class="section">
+    <h2>Фильтр объективов</h2>
+
+    <form class="filters" (ngSubmit)="$event.preventDefault(); applyFilters()">
+      <div class="filter-group">
+        <label>Фокусное расстояние, мм</label>
+        <div class="slider-row">
+          <input type="text" [(ngModel)]="minFocal" name="minFocalInput" (input)="applyFilters()" />
+          <input
+            type="range"
+            min="10"
+            max="500"
+            [(ngModel)]="minFocal"
+            name="minFocal"
+            (change)="applyFilters()" />
+          <span>—</span>
+          <input
+            type="range"
+            min="10"
+            max="500"
+            [(ngModel)]="maxFocal"
+            name="maxFocal"
+            (change)="applyFilters()" />
+          <input type="text" [(ngModel)]="maxFocal" name="maxFocalInput" (input)="applyFilters()" />
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Цена, ₽</label>
+        <div class="slider-row">
+          <input type="text" [(ngModel)]="minPrice" name="minPriceInput" (input)="applyFilters()" />
+          <input
+            type="range"
+            min="1000"
+            max="200000"
+            [(ngModel)]="minPrice"
+            name="minPrice"
+            (change)="applyFilters()" />
+          <span>—</span>
+          <input
+            type="range"
+            min="1000"
+            max="200000"
+            [(ngModel)]="maxPrice"
+            name="maxPrice"
+            (change)="applyFilters()" />
+          <input type="text" [(ngModel)]="maxPrice" name="maxPriceInput" (input)="applyFilters()" />
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Бренд</label>
+        <select [(ngModel)]="selectedBrand" name="selectedBrand" (change)="applyFilters()">
+          <option value="">Любой</option>
+          <option *ngFor="let b of brands" [value]="b">{{ b }}</option>
+        </select>
+      </div>
+
+      <div class="filter-actions">
+        <button type="button" class="secondary" (click)="clearFilters()">
+          Сбросить
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Список объективов -->
+  <div class="section">
+    <h2>
+      {{ selectedType ? 'Подходящие объективы' : 'Популярные объективы' }}
+    </h2>
+
+    <div *ngIf="filteredLenses.length === 0" class="empty">
+      По заданным параметрам ничего не найдено. Попробуйте ослабить фильтры.
+    </div>
+
+    <div class="lens-list" *ngIf="filteredLenses.length > 0">
+      <div
+        class="lens-card"
+        *ngFor="let lens of filteredLenses"
+        (click)="openDetails(lens)"
+      >
+        <div class="lens-main">
+          <h3>{{ lens.name }}</h3>
+          <p class="lens-type">
+            Тип: {{ lens.type }}
+          </p>
+          <p class="lens-specs">
+            Фокусное: {{ lens.focalLength }} ·
+            Диафрагма: {{ lens.aperture }} ·
+            Бренд: {{ lens.brand }}
+          </p>
+          <p class="lens-price">
+            {{ lens.price | number:'1.0-0' }} ₽
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
