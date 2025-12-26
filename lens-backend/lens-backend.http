@@ -1,0 +1,6 @@
+@lens_backend_HostAddress = http://localhost:5053
+
+GET {{lens_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
