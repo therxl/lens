@@ -9,6 +9,7 @@ export class AuthService {
   private _isLoggedIn = false;
   private _mode: UserMode | null = null;
   private _username: string | null = null;
+  private _userId: string | null = null;
 
   get isLoggedIn(): boolean {
     return this._isLoggedIn;
@@ -16,6 +17,10 @@ export class AuthService {
 
   get mode(): UserMode | null {
     return this._mode;
+  }
+
+  get userId(): string | null {
+    return this._userId;
   }
 
   get currentKey(): string {
@@ -30,16 +35,18 @@ export class AuthService {
     return `favorites_user`;
   }
 
-  loginAsUser(username: string): void {
+  loginAsUser(username: string, userId: string): void {
     this._isLoggedIn = true;
     this._mode = 'user';
     this._username = username;
+    this._userId = userId;
   }
 
-  loginAsGuest(): void {
+  loginAsGuest(userId: string): void {
     this._isLoggedIn = true;
     this._mode = 'guest';
     this._username = null;
+    this._userId = userId;
   }
 
   logout(): void {

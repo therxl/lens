@@ -20,8 +20,9 @@ export class LensDetailComponent {
     if (!this.lens) {
       return;
     }
-    this.lensService.addToFavorites(this.lens);
-    this.addedToFavorites = true;
+    this.lensService.addToFavorites(this.lens.id).subscribe(() => {
+      this.addedToFavorites = true;
+    });
   }
 
   closeModal() {

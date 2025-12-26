@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth.service';
 
 @Component({
@@ -14,7 +15,8 @@ export class LoginComponent {
 
   constructor(
     private router: Router,
-    private auth: AuthService
+    private auth: AuthService,
+    private http: HttpClient
   ) {}
 
   login() {
@@ -23,19 +25,38 @@ export class LoginComponent {
       return;
     }
 
-    // фейковая авторизация
-    if (this.username === 'user' && this.password === '1234') {
-      this.errorMessage = '';
-      this.auth.loginAsUser(this.username);
-      this.router.navigate(['/home']);
-    } else {
-      this.errorMessage = 'Неверный логин или пароль';
-    }
+    this.http.post<any>('http://localhost:5053/api/auth/login', { username: this.username, password: this.password })
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.errorMessage = '';
+            this.auth.loginAsUser(this.username, response.userId);
+            this.router.navigate(['/home']);
+          } else {
+            this.errorMessage = 'Неверный логин или пароль';
+          }
+        },
+        error: () => {
+          this.errorMessage = 'Ошибка сервера';
+        }
+      });
   }
 
   continueAsGuest() {
     this.errorMessage = '';
-    this.auth.loginAsGuest();
-    this.router.navigate(['/home']);
+    this.http.post<any>('http://localhost:5053/api/auth/guest', {})
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.auth.loginAsGuest(response.userId);
+            this.router.navigate(['/home']);
+          } else {
+            this.errorMessage = 'Ошибка';
+          }
+        },
+        error: () => {
+          this.errorMessage = 'Ошибка сервера';
+        }
+      });
   }
 }

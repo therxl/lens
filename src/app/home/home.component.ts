@@ -29,18 +29,17 @@ export class HomeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // важное место: подгружаем избранное для текущего режима (guest/user)
-    this.lensService.refreshFavoritesForCurrentUser();
+    this.lensService.getLenses().subscribe(lenses => {
+      this.allLenses = lenses;
+      this.brands = Array.from(new Set(this.allLenses.map(l => l.brand))).sort();
+      this.filteredLenses = this.allLenses.filter(l => l.isPopular);
 
-    this.allLenses = this.lensService.getLenses();
-    this.brands = Array.from(new Set(this.allLenses.map(l => l.brand))).sort();
-    this.filteredLenses = this.allLenses.filter(l => l.isPopular);
-
-    // Set initial slider values
-    this.minFocal = 10;
-    this.maxFocal = 500;
-    this.minPrice = 1000;
-    this.maxPrice = 200000;
+      // Set initial slider values
+      this.minFocal = 10;
+      this.maxFocal = 500;
+      this.minPrice = 1000;
+      this.maxPrice = 200000;
+    });
   }
 
   // остальной код без изменений...
