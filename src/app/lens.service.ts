@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
 import { AuthService } from './auth.service';
 
 export interface Lens {
@@ -20,80 +22,11 @@ export interface Lens {
   providedIn: 'root'
 })
 export class LensService {
-  private lenses: Lens[] = [
-    {
-      id: 1,
-      name: 'Canon EF 85mm f/1.8',
-      type: 'portrait',
-      focalLength: '85mm',
-      minFocal: 85,
-      maxFocal: 85,
-      aperture: 'f/1.8',
-      compatibility: 'Canon EF',
-      brand: 'Canon',
-      price: 35000,
-      description: 'Классический портретный объектив.',
-      isPopular: true
-    },
-    {
-      id: 2,
-      name: 'Canon EF 24-70mm f/2.8',
-      type: 'landscape',
-      focalLength: '24–70mm',
-      minFocal: 24,
-      maxFocal: 70,
-      aperture: 'f/2.8',
-      compatibility: 'Canon EF',
-      brand: 'Canon',
-      price: 90000,
-      description: 'Универсальный зум для пейзажей и репортажей.',
-      isPopular: true
-    },
-    {
-      id: 3,
-      name: 'Nikon AF-S 70-200mm f/2.8',
-      type: 'sport',
-      focalLength: '70–200mm',
-      minFocal: 70,
-      maxFocal: 200,
-      aperture: 'f/2.8',
-      compatibility: 'Nikon F',
-      brand: 'Nikon',
-      price: 130000,
-      description: 'Телезум для спорта и съёмки с расстояния.',
-      isPopular: true
-    },
-    {
-      id: 4,
-      name: 'Sony FE 90mm f/2.8 Macro',
-      type: 'macro',
-      focalLength: '90mm',
-      minFocal: 90,
-      maxFocal: 90,
-      aperture: 'f/2.8',
-      compatibility: 'Sony FE',
-      brand: 'Sony',
-      price: 110000,
-      description: 'Макрообъектив для съёмки мелких деталей.'
-    },
-    {
-      id: 5,
-      name: 'Sigma 16mm f/1.4 DC DN',
-      type: 'landscape',
-      focalLength: '16mm',
-      minFocal: 16,
-      maxFocal: 16,
-      aperture: 'f/1.4',
-      compatibility: 'Sony E / m4/3',
-      brand: 'Sigma',
-      price: 45000,
-      description: 'Широкоугольный объектив для пейзажей и интерьеров.'
-    }
-  ];
+  private apiUrl = 'http://localhost:5126/api/lenses';
 
   private favorites: Lens[] = [];
 
-  constructor(private auth: AuthService) {
+  constructor(private http: HttpClient, private auth: AuthService) {
     this.loadFavorites();
   }
 
@@ -126,12 +59,12 @@ export class LensService {
     this.loadFavorites();
   }
 
-  getLenses(): Lens[] {
-    return this.lenses;
+  getLenses(): Observable<Lens[]> {
+    return this.http.get<Lens[]>(this.apiUrl);
   }
 
-  getLensById(id: number): Lens | undefined {
-    return this.lenses.find(l => l.id === id);
+  getLensById(id: number): Observable<Lens | undefined> {
+    return this.http.get<Lens>(`${this.apiUrl}/${id}`);
   }
 
   addToFavorites(lens: Lens): void {
