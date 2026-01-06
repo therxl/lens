@@ -1,0 +1,11 @@
+<header class="app-header" *ngIf="auth.isLoggedIn">
+  <div class="logo" routerLink="/home">
+    <span class="logo-text">Photomag</span>
+    <span class="tagline">Объективно<br>Объективы</span>
+  </div>
+  <button class="favorites-btn" routerLink="/favorites">Избранное</button>
+</header>
+
+<main class="app-main">
+  <router-outlet></router-outlet>
+</main>

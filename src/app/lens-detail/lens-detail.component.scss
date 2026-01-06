@@ -1,0 +1,108 @@
+.lens-detail {
+  padding: 24px;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+.lens-detail > * {
+  /* чтобы содержимое не растягивалось на всю ширину */
+  width: 100%;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 24px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.lens-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px 24px;
+  margin-bottom: 16px;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+
+    strong {
+      font-weight: 600;
+    }
+  }
+}
+
+.lens-description {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #444;
+}
+
+.price-row {
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 8px;
+
+  button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+    background: #000000;
+    color: #ffffff;
+    transition: background 0.15s;
+
+    &:hover {
+      background: #333333;
+    }
+
+    &.secondary {
+      background: #ffffff;
+      color: #000000;
+      border: 1px solid #000000;
+
+      &:hover {
+        background: #cccccc;
+      }
+    }
+  }
+}
+
+/* Сообщение "не найден" */
+
+.not-found {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  h1 {
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+  }
+}
+
+.fav-message {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #2e7d32;
+}

@@ -1,0 +1,39 @@
+<div class="favorites-page">
+  <div class="favorites-card">
+    <h1>Избранные объективы</h1>
+
+    <div *ngIf="favorites.length === 0" class="empty">
+      В избранном пока нет объективов. Добавьте понравившиеся на странице объектива.
+    </div>
+
+    <div class="lens-list" *ngIf="favorites.length > 0">
+      <div
+        class="lens-card"
+        *ngFor="let lens of favorites"
+        (click)="openDetails(lens)"
+      >
+        <div class="lens-main">
+          <h3>{{ lens.name }}</h3>
+          <p class="lens-type">
+            Тип: {{ lens.type }}
+          </p>
+          <p class="lens-specs">
+            Фокусное: {{ lens.focalLength }} ·
+            Диафрагма: {{ lens.aperture }} ·
+            Бренд: {{ lens.brand }}
+          </p>
+          <p class="lens-price">
+            {{ lens.price | number:'1.0-0' }} ₽
+          </p>
+        </div>
+        <div class="lens-actions">
+          <button (click)="$event.stopPropagation(); removeFromFavorites(lens)">Удалить</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="back-btn" routerLink="/home">
+      Назад на главную
+    </button>
+  </div>
+</div>
