@@ -32,4 +32,28 @@ public class LensesController : ControllerBase
         }
         return Ok(lens);
     }
+<<<<<<< HEAD
+=======
+
+    [HttpGet("popular")]
+    public ActionResult<IEnumerable<Lens>> GetPopularLenses()
+    {
+        var lenses = _lensRepository.GetPopularLenses();
+        return Ok(lenses);
+    }
+
+    [HttpGet("brand/{brand}")]
+    public ActionResult<IEnumerable<Lens>> GetLensesByBrand(string brand)
+    {
+        var lenses = _lensRepository.GetLensesByBrand(brand);
+        return Ok(lenses);
+    }
+
+    [HttpGet("type/{type}")]
+    public ActionResult<IEnumerable<Lens>> GetLensesByType(string type)
+    {
+        var lenses = _lensRepository.GetLensesByType(type);
+        return Ok(lenses);
+    }
+>>>>>>> 042e6a4 (lab4)
 }

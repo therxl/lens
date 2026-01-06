@@ -1,9 +1,27 @@
+<<<<<<< HEAD
+=======
+using Microsoft.EntityFrameworkCore;
+using LensApi;
+
+>>>>>>> 042e6a4 (lab4)
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+<<<<<<< HEAD
+=======
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+using (var scope = builder.Services.BuildServiceProvider().CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    context.Database.EnsureCreated();
+}
+
+>>>>>>> 042e6a4 (lab4)
 builder.Services.AddScoped<LensApi.Repositories.ILensRepository, LensApi.Repositories.LensRepository>();
 builder.Services.AddCors(options =>
 {
