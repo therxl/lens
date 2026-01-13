@@ -32,9 +32,11 @@ export class HomeComponent implements OnInit {
     // важное место: подгружаем избранное для текущего режима (guest/user)
     this.lensService.refreshFavoritesForCurrentUser();
 
-    this.allLenses = this.lensService.getLenses();
-    this.brands = Array.from(new Set(this.allLenses.map(l => l.brand))).sort();
-    this.filteredLenses = this.allLenses.filter(l => l.isPopular);
+    this.lensService.getLenses().subscribe(lenses => {
+      this.allLenses = lenses;
+      this.brands = Array.from(new Set(this.allLenses.map(l => l.brand))).sort();
+      this.filteredLenses = this.allLenses.filter(l => l.isPopular);
+    });
 
     // Set initial slider values
     this.minFocal = 10;
