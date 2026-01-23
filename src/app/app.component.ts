@@ -12,5 +12,7 @@ export class AppComponent implements OnInit {
   constructor(public auth: AuthService) {}
 
   ngOnInit(): void {
+    // Set default mode to guest
+    this.auth.loginAsGuest();
   }
 }

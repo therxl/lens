@@ -18,17 +18,38 @@ public class LensesController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<Lens>> GetLenses()
     {
-        return Ok(_lensRepository.GetAll());
+        try
+        {
+            var lenses = _lensRepository.GetAll();
+            return Ok(lenses);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting lenses: {ex.Message}");
+            return StatusCode(500, "Internal server error");
+        }
     }
 
     [HttpGet("{id}")]
     public ActionResult<Lens> GetLens(int id)
     {
-        var lens = _lensRepository.GetById(id);
-        if (lens == null)
+        if (id <= 0)
         {
-            return NotFound();
+            return BadRequest("Invalid id");
         }
-        return Ok(lens);
+        try
+        {
+            var lens = _lensRepository.GetById(id);
+            if (lens == null)
+            {
+                return NotFound();
+            }
+            return Ok(lens);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting lens {id}: {ex.Message}");
+            return StatusCode(500, "Internal server error");
+        }
     }
 }
