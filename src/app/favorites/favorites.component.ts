@@ -17,7 +17,13 @@ export class FavoritesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.favorites = this.lensService.getFavorites();
+    this.loadFavorites();
+  }
+
+  loadFavorites(): void {
+    this.lensService.getFavorites().subscribe(favorites => {
+      this.favorites = favorites;
+    });
   }
 
   openDetails(lens: Lens) {
@@ -25,8 +31,9 @@ export class FavoritesComponent implements OnInit {
   }
 
   removeFromFavorites(lens: Lens) {
-  this.lensService.removeFromFavorites(lens);
-  this.favorites = this.lensService.getFavorites();
+    this.lensService.removeFromFavorites(lens).subscribe(() => {
+      this.loadFavorites();
+    });
   }
 
 
