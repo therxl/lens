@@ -46,7 +46,7 @@ export class LensService {
 
   addToFavorites(lens: Lens): Observable<any> {
     const userId = this.getUserId();
-    return this.http.post(`${this.baseUrl}/favorites?userId=${userId}`, lens);
+    return this.http.post(`${this.baseUrl}/favorites/${lens.id}?userId=${userId}`, {});
   }
 
   removeFromFavorites(lens: Lens): Observable<any> {

@@ -1,44 +1,68 @@
 using LensBackend.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace LensBackend.Repositories;
 
 public class FavoritesRepository
 {
-    private readonly Dictionary<string, List<Lens>> _userFavorites = new();
+    private readonly ApplicationDbContext _context;
 
-    public IEnumerable<Lens> GetFavorites(string userId)
+    public FavoritesRepository(ApplicationDbContext context)
     {
-        if (_userFavorites.TryGetValue(userId, out var favorites))
-        {
-            return favorites;
-        }
-        return new List<Lens>();
+        _context = context;
     }
 
-    public bool AddToFavorites(string userId, Lens lens)
+    // Используем raw SQL для получения избранных линз
+    public IEnumerable<Lens> GetFavorites(string userId)
     {
-        if (!_userFavorites.ContainsKey(userId))
+        if (string.IsNullOrWhiteSpace(userId))
         {
-            _userFavorites[userId] = new List<Lens>();
+            throw new ArgumentException("UserId cannot be null or empty", nameof(userId));
         }
-        if (_userFavorites[userId].Any(f => f.Id == lens.Id))
+        var sql = "SELECT l.* FROM \"Lenses\" l INNER JOIN \"Favorites\" f ON l.\"Id\" = f.\"LensId\" WHERE f.\"UserId\" = {0}";
+        return _context.Lenses.FromSqlRaw(sql, userId).ToList();
+    }
+
+    // Используем EF для добавления в избранное
+    public async Task<bool> AddToFavorites(string userId, int lensId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            throw new ArgumentException("UserId cannot be null or empty", nameof(userId));
+        }
+        if (lensId <= 0)
+        {
+            throw new ArgumentException("LensId must be positive", nameof(lensId));
+        }
+        var existing = await _context.Favorites.FirstOrDefaultAsync(f => f.UserId == userId && f.LensId == lensId);
+        if (existing != null)
         {
             return false; // Already in favorites
         }
-        _userFavorites[userId].Add(lens);
+        var favorite = new Favorite { UserId = userId, LensId = lensId };
+        _context.Favorites.Add(favorite);
+        await _context.SaveChangesAsync();
         return true;
     }
 
-    public bool RemoveFromFavorites(string userId, int lensId)
+    // Используем EF для удаления из избранного
+    public async Task<bool> RemoveFromFavorites(string userId, int lensId)
     {
-        if (_userFavorites.TryGetValue(userId, out var favorites))
+        if (string.IsNullOrWhiteSpace(userId))
         {
-            var lens = favorites.FirstOrDefault(f => f.Id == lensId);
-            if (lens != null)
-            {
-                favorites.Remove(lens);
-                return true;
-            }
+            throw new ArgumentException("UserId cannot be null or empty", nameof(userId));
+        }
+        if (lensId <= 0)
+        {
+            throw new ArgumentException("LensId must be positive", nameof(lensId));
+        }
+        var favorite = await _context.Favorites.FirstOrDefaultAsync(f => f.UserId == userId && f.LensId == lensId);
+        if (favorite != null)
+        {
+            _context.Favorites.Remove(favorite);
+            await _context.SaveChangesAsync();
+            return true;
         }
         return false;
     }

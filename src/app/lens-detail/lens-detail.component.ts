@@ -20,8 +20,15 @@ export class LensDetailComponent {
     if (!this.lens) {
       return;
     }
-    this.lensService.addToFavorites(this.lens).subscribe(() => {
-      this.addedToFavorites = true;
+    console.log('Adding to favorites:', this.lens.id);
+    this.lensService.addToFavorites(this.lens).subscribe({
+      next: () => {
+        console.log('Added to favorites successfully');
+        this.addedToFavorites = true;
+      },
+      error: (err) => {
+        console.error('Error adding to favorites:', err);
+      }
     });
   }
 

@@ -20,50 +20,80 @@ public class FavoritesController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<Lens>> GetFavorites([FromQuery] string userId)
     {
-        if (string.IsNullOrEmpty(userId))
+        if (string.IsNullOrWhiteSpace(userId))
         {
-            return BadRequest("UserId is required");
+            return BadRequest("UserId is required and cannot be empty");
         }
-        return Ok(_favoritesRepository.GetFavorites(userId));
+        try
+        {
+            var favorites = _favoritesRepository.GetFavorites(userId);
+            return Ok(favorites);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting favorites for user {userId}: {ex.Message}");
+            return StatusCode(500, "Internal server error");
+        }
     }
 
-    [HttpPost]
-    public ActionResult AddToFavorites([FromQuery] string userId, [FromBody] Lens lens)
+    [HttpPost("{lensId}")]
+    public async Task<ActionResult> AddToFavorites(int lensId, [FromQuery] string userId)
     {
-        if (string.IsNullOrEmpty(userId))
+        Console.WriteLine($"AddToFavorites: lensId={lensId}, userId='{userId}'");
+        if (string.IsNullOrWhiteSpace(userId))
         {
-            return BadRequest("UserId is required");
+            return BadRequest("UserId is required and cannot be empty");
         }
-        if (lens == null || lens.Id == 0)
+        if (lensId <= 0)
         {
-            return BadRequest("Lens is required");
+            return BadRequest("Invalid lensId");
         }
-        // Optionally validate lens exists
-        var existingLens = _lensRepository.GetById(lens.Id);
-        if (existingLens == null)
+        try
         {
-            return NotFound("Lens not found");
+            // Validate lens exists
+            var existingLens = _lensRepository.GetById(lensId);
+            if (existingLens == null)
+            {
+                return NotFound("Lens not found");
+            }
+            var added = await _favoritesRepository.AddToFavorites(userId, lensId);
+            if (!added)
+            {
+                return Conflict("Lens already in favorites");
+            }
+            return Ok();
         }
-        var added = _favoritesRepository.AddToFavorites(userId, lens);
-        if (!added)
+        catch (Exception ex)
         {
-            return Conflict("Lens already in favorites");
+            Console.WriteLine($"Error adding to favorites: {ex.Message}");
+            return StatusCode(500, "Internal server error");
         }
-        return Ok();
     }
 
     [HttpDelete("{lensId}")]
-    public ActionResult RemoveFromFavorites(int lensId, [FromQuery] string userId)
+    public async Task<ActionResult> RemoveFromFavorites(int lensId, [FromQuery] string userId)
     {
-        if (string.IsNullOrEmpty(userId))
+        if (string.IsNullOrWhiteSpace(userId))
         {
-            return BadRequest("UserId is required");
+            return BadRequest("UserId is required and cannot be empty");
         }
-        var removed = _favoritesRepository.RemoveFromFavorites(userId, lensId);
-        if (!removed)
+        if (lensId <= 0)
         {
-            return NotFound("Lens not in favorites");
+            return BadRequest("Invalid lensId");
         }
-        return Ok();
+        try
+        {
+            var removed = await _favoritesRepository.RemoveFromFavorites(userId, lensId);
+            if (!removed)
+            {
+                return NotFound("Lens not in favorites");
+            }
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error removing from favorites: {ex.Message}");
+            return StatusCode(500, "Internal server error");
+        }
     }
 }
