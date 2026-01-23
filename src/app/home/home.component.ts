@@ -38,7 +38,7 @@ export class HomeComponent implements OnInit {
         console.log('Lenses loaded:', lenses);
         this.allLenses = lenses;
         this.brands = Array.from(new Set(this.allLenses.map(l => l.brand))).sort();
-        this.filteredLenses = this.allLenses.filter(l => l.isPopular);
+        this.filteredLenses = this.allLenses;
       },
       error: err => {
         console.error('Error loading lenses:', err);
@@ -105,7 +105,7 @@ export class HomeComponent implements OnInit {
       !this.selectedBrand;
 
     this.filteredLenses = noFilters
-      ? this.allLenses.filter(l => l.isPopular)
+      ? this.allLenses
       : list;
   }
 
