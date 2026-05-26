@@ -1,0 +1,106 @@
+services:
+  redis:
+    image: redis:7
+    container_name: lens-redis-ci
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: lens-rabbitmq-ci
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  lensapi:
+    build:
+      context: ./backend/LensApi
+      dockerfile: Dockerfile
+    container_name: lens-lensapi-ci
+    ports:
+      - "5126:5126"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Redis__Configuration=redis:6379
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__Port=5672
+      - RabbitMq__Username=guest
+      - RabbitMq__Password=guest
+      - RabbitMq__VirtualHost=/
+      - RabbitMq__QueueName=lens.cache.invalidations
+      - Jwt__Key=dev-super-secret-key-change-me-please
+      - Jwt__Issuer=lens-app
+      - Jwt__Audience=lens-app-users
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5126/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  recommendationsapi:
+    build:
+      context: ./backend/RecommendationsApi
+      dockerfile: Dockerfile
+    container_name: lens-recommendationsapi-ci
+    ports:
+      - "5127:5127"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Redis__Configuration=redis:6379
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__Port=5672
+      - RabbitMq__Username=guest
+      - RabbitMq__Password=guest
+      - RabbitMq__VirtualHost=/
+      - RabbitMq__QueueName=lens.cache.invalidations
+      - Jwt__Key=dev-super-secret-key-change-me-please
+      - Jwt__Issuer=lens-app
+      - Jwt__Audience=lens-app-users
+      - LensApi__BaseUrl=http://lensapi:5126/
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5127/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  apigateway:
+    build:
+      context: ./backend/ApiGateway
+      dockerfile: Dockerfile
+    container_name: lens-apigateway-ci
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - lensapi
+      - recommendationsapi
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
