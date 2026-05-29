@@ -1,34 +1,26 @@
 services:
   postgres:
     image: postgres:16
-    container_name: lens-postgres-ci
+    container_name: lens-postgres
     ports:
       - "5432:5432"
     environment:
       POSTGRES_DB: lens_bd
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d lens_bd"]
       interval: 10s
       timeout: 5s
       retries: 10
-
-  redis:
-    image: redis:7
-    container_name: lens-redis-ci
-    ports:
-      - "6379:6379"
-    command: ["redis-server", "--appendonly", "yes"]
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+    networks:
+      - lens-network
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: lens-rabbitmq-ci
+    container_name: lens-rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -40,12 +32,38 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - lens-network
+
+  redis:
+    image: redis:7
+    container_name: lens-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - lens-network
+
+  seq:
+    image: datalust/seq:latest
+    container_name: lens-seq
+    ports:
+      - "5341:80"
+    environment:
+      ACCEPT_EULA: "Y"
+    networks:
+      - lens-network
 
   lensapi:
     build:
       context: ./backend/LensApi
       dockerfile: Dockerfile
-    container_name: lens-lensapi-ci
+    container_name: lens-lensapi
     ports:
       - "5126:5126"
     environment:
@@ -73,12 +91,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - lens-network
 
   recommendationsapi:
     build:
       context: ./backend/RecommendationsApi
       dockerfile: Dockerfile
-    container_name: lens-recommendationsapi-ci
+    container_name: lens-recommendationsapi
     ports:
       - "5127:5127"
     environment:
@@ -107,12 +127,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - lens-network
 
   apigateway:
     build:
       context: ./backend/ApiGateway
       dockerfile: Dockerfile
-    container_name: lens-apigateway-ci
+    container_name: lens-apigateway
     ports:
       - "5000:5000"
     environment:
@@ -125,3 +147,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - lens-network
+
+networks:
+  lens-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
