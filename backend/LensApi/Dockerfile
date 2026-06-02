@@ -4,13 +4,13 @@ WORKDIR /src
 
 # Copy project file
 # Use simple COPY form which is more robust in some CI/buildkit environments
-COPY LensApi.csproj ./
-# Diagnostic: print the project file to the build logs to debug CI context issues
-RUN echo "---- Begin LensApi.csproj ----" && sed -n '1,120p' LensApi.csproj || true && echo "---- End LensApi.csproj ----"
-RUN dotnet restore "LensApi.csproj"
-
-# Copy source code
+## Copy source code (copy all to avoid context mismatch in some CI environments)
 COPY . .
+
+# Diagnostic: print the project file to the build logs to debug CI context issues
+RUN echo "---- Begin LensApi.csproj ----" && sed -n '1,160p' LensApi.csproj || true && echo "---- End LensApi.csproj ----"
+
+RUN dotnet restore "LensApi.csproj"
 RUN dotnet build "LensApi.csproj" -c Release -o /app/build
 
 # Publish stage
