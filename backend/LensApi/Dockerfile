@@ -5,7 +5,8 @@ WORKDIR /src
 # Copy project file
 # Use simple COPY form which is more robust in some CI/buildkit environments
 ## Copy source code (copy all to avoid context mismatch in some CI environments)
-COPY . .
+## Copy only the LensApi folder from the repo root when building with repo root as context
+COPY backend/LensApi/ ./
  
 # Diagnostics: list files, sizes, and a byte-dump fallback to identify corruption/encoding
 RUN echo "=== PWD ===" && pwd || true
