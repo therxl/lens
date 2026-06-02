@@ -3,7 +3,8 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copy project file
-COPY ["LensApi.csproj", "./"]
+# Use simple COPY form which is more robust in some CI/buildkit environments
+COPY LensApi.csproj ./
 RUN dotnet restore "LensApi.csproj"
 
 # Copy source code
