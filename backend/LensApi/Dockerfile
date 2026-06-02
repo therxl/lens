@@ -6,9 +6,15 @@ WORKDIR /src
 # Use simple COPY form which is more robust in some CI/buildkit environments
 ## Copy source code (copy all to avoid context mismatch in some CI environments)
 COPY . .
+ 
+# Diagnostics: list files, sizes, and a byte-dump fallback to identify corruption/encoding
+RUN echo "=== PWD ===" && pwd || true
+RUN echo "=== LS -la ===" && ls -la || true
+RUN echo "=== FILE SIZE (bytes) ===" && wc -c LensApi.csproj || true
+RUN echo "=== HEX DUMP (first 512 bytes) ===" && (command -v xxd >/dev/null 2>&1 && xxd -l 512 LensApi.csproj || command -v hexdump >/dev/null 2>&1 && hexdump -n 512 -C LensApi.csproj || od -An -t x1 -N512 LensApi.csproj) || true
 
 # Diagnostic: print the project file to the build logs to debug CI context issues
-RUN echo "---- Begin LensApi.csproj ----" && sed -n '1,160p' LensApi.csproj || true && echo "---- End LensApi.csproj ----"
+RUN echo "---- Begin LensApi.csproj ----" && sed -n '1,200p' LensApi.csproj || true && echo "---- End LensApi.csproj ----"
 
 RUN dotnet restore "LensApi.csproj"
 RUN dotnet build "LensApi.csproj" -c Release -o /app/build
