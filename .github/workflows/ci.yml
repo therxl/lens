@@ -68,6 +68,18 @@ jobs:
           name: LensApi-csproj-diagnostic
           path: diag/LensApi.csproj.txt
 
+      - name: Pack LensApi directory for diagnostic
+        run: |
+          mkdir -p diag
+          tar -czf diag/LensApi-ci-dump.tar.gz -C backend/LensApi . || true
+        shell: bash
+
+      - name: Upload LensApi directory artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LensApi-ci-dump
+          path: diag/LensApi-ci-dump.tar.gz
+
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
