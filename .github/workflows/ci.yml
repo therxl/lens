@@ -59,9 +59,9 @@ jobs:
 
       - name: Build Docker images
         run: |
-          docker build -t lens-lensapi:ci ./backend/LensApi
-          docker build -t lens-recommendationsapi:ci ./backend/RecommendationsApi
-          docker build -t lens-apigateway:ci ./backend/ApiGateway
+          docker build --no-cache --progress=plain -t lens-lensapi:ci ./backend/LensApi
+          docker build --no-cache --progress=plain -t lens-recommendationsapi:ci ./backend/RecommendationsApi
+          docker build --no-cache --progress=plain -t lens-apigateway:ci ./backend/ApiGateway
 
   integration-smoke:
     runs-on: ubuntu-latest
