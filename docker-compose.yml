@@ -5,9 +5,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: lens_bd
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-lens_bd}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -25,8 +25,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -67,18 +67,18 @@ services:
     ports:
       - "5126:5126"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=lens_bd;Username=postgres;Password=postgres
-      - Redis__Configuration=redis:6379
-      - RabbitMq__Host=rabbitmq
-      - RabbitMq__Port=5672
-      - RabbitMq__Username=guest
-      - RabbitMq__Password=guest
-      - RabbitMq__VirtualHost=/
-      - RabbitMq__QueueName=lens.cache.invalidations
-      - Jwt__Key=dev-super-secret-key-change-me-please
-      - Jwt__Issuer=lens-app
-      - Jwt__Audience=lens-app-users
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ConnectionStrings__DefaultConnection=Host=${POSTGRES_HOST:-postgres};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB:-lens_bd};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      - Redis__Configuration=${REDIS_HOST:-redis}:6379
+      - RabbitMq__Host=${RABBITMQ_HOST:-rabbitmq}
+      - RabbitMq__Port=${RABBITMQ_PORT:-5672}
+      - RabbitMq__Username=${RABBITMQ_DEFAULT_USER:-guest}
+      - RabbitMq__Password=${RABBITMQ_DEFAULT_PASS:-guest}
+      - RabbitMq__VirtualHost=${RABBITMQ_VHOST:-/}
+      - RabbitMq__QueueName=${RABBITMQ_QUEUE:-lens.cache.invalidations}
+      - Jwt__Key=${JWT_KEY:-dev-super-secret-key-change-me-please}
+      - Jwt__Issuer=${JWT_ISSUER:-lens-app}
+      - Jwt__Audience=${JWT_AUDIENCE:-lens-app-users}
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,19 +102,19 @@ services:
     ports:
       - "5127:5127"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=lens_bd;Username=postgres;Password=postgres
-      - Redis__Configuration=redis:6379
-      - RabbitMq__Host=rabbitmq
-      - RabbitMq__Port=5672
-      - RabbitMq__Username=guest
-      - RabbitMq__Password=guest
-      - RabbitMq__VirtualHost=/
-      - RabbitMq__QueueName=lens.cache.invalidations
-      - Jwt__Key=dev-super-secret-key-change-me-please
-      - Jwt__Issuer=lens-app
-      - Jwt__Audience=lens-app-users
-      - LensApi__BaseUrl=http://lensapi:5126/
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ConnectionStrings__DefaultConnection=Host=${POSTGRES_HOST:-postgres};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB:-lens_bd};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      - Redis__Configuration=${REDIS_HOST:-redis}:6379
+      - RabbitMq__Host=${RABBITMQ_HOST:-rabbitmq}
+      - RabbitMq__Port=${RABBITMQ_PORT:-5672}
+      - RabbitMq__Username=${RABBITMQ_DEFAULT_USER:-guest}
+      - RabbitMq__Password=${RABBITMQ_DEFAULT_PASS:-guest}
+      - RabbitMq__VirtualHost=${RABBITMQ_VHOST:-/}
+      - RabbitMq__QueueName=${RABBITMQ_QUEUE:-lens.cache.invalidations}
+      - Jwt__Key=${JWT_KEY:-dev-super-secret-key-change-me-please}
+      - Jwt__Issuer=${JWT_ISSUER:-lens-app}
+      - Jwt__Audience=${JWT_AUDIENCE:-lens-app-users}
+      - LensApi__BaseUrl=${LENSAPI_BASEURL:-http://lensapi:5126/}
     depends_on:
       postgres:
         condition: service_healthy
@@ -124,6 +124,31 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:5127/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - lens-network
+
+  identityapi:
+    build:
+      context: ./backend/IdentityApi
+      dockerfile: Dockerfile
+    container_name: lens-identityapi
+    ports:
+      - "5128:5128"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ConnectionStrings__DefaultConnection=Host=${POSTGRES_HOST:-postgres};Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB:-lens_bd};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      - Redis__Configuration=${REDIS_HOST:-redis}:6379
+      - Jwt__Key=${JWT_KEY:-dev-super-secret-key-change-me-please}
+      - Jwt__Issuer=${JWT_ISSUER:-lens-app}
+      - Jwt__Audience=${JWT_AUDIENCE:-lens-app-users}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5128/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -142,6 +167,7 @@ services:
     depends_on:
       - lensapi
       - recommendationsapi
+      - identityapi
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:5000/health || exit 1"]
       interval: 10s
