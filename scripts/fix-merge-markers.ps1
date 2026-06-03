@@ -15,7 +15,7 @@ $modified = @()
 foreach ($ext in $extensions) {
     Get-ChildItem -Path $path -Recurse -Filter $ext -ErrorAction SilentlyContinue | ForEach-Object {
         $file = $_.FullName
-        $lines = Get-Content -Raw -LiteralPath $file -ErrorAction Stop -Encoding UTF8 -Raw | Out-String
+        $lines = Get-Content -LiteralPath $file -Encoding UTF8 -Raw -ErrorAction Stop | Out-String
         if ($lines -match '<<<<<<<') {
             Write-Host "Found markers in: $file"
             $arr = Get-Content -LiteralPath $file -Encoding UTF8
