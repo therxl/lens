@@ -87,6 +87,18 @@ jobs:
           Write-Host "Running merge-marker sanitizer script"
           ./scripts/fix-merge-markers.ps1
 
+      - name: Diagnostic: list LensApi files and search conflict markers
+        shell: bash
+        run: |
+          echo "---- ls backend/LensApi ----"
+          ls -la backend/LensApi || true
+          echo "---- grep for conflict markers (<<<<<<<) ----"
+          grep -nR '^<<<<<<<' backend/LensApi || true
+          echo "---- grep for conflict markers (=======) ----"
+          grep -nR '^=======' backend/LensApi || true
+          echo "---- grep for conflict markers (>>>>>>>) ----"
+          grep -nR '^>>>>>>>' backend/LensApi || true
+
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
