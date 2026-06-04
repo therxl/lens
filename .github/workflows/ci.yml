@@ -87,7 +87,7 @@ jobs:
           Write-Host "Running merge-marker sanitizer script"
           ./scripts/fix-merge-markers.ps1
 
-      - name: Diagnostic: list LensApi files and search conflict markers
+      - name: "Diagnostic: list LensApi files and search conflict markers"
         shell: bash
         run: |
           echo "---- ls backend/LensApi ----"
