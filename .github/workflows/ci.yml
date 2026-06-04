@@ -118,6 +118,23 @@ jobs:
       - name: Start services
         run: docker compose -f docker-compose.ci.yml up -d --build
 
+      - name: Wait for DB migrations
+        run: |
+          for i in {1..60}; do
+            # try to query migrations table; -t removes headers
+            COUNT=$(docker compose -f docker-compose.ci.yml exec -T postgres psql -U postgres -d lens_bd -t -c "SELECT count(*) FROM \"__EFMigrationsHistory\";" 2>/dev/null | tr -d '[:space:]') || COUNT=""
+            if [ -n "$COUNT" ] && [ "$COUNT" -gt 0 ]; then
+              echo "Migrations applied (count=$COUNT)";
+              exit 0;
+            fi
+            echo "Waiting for migrations to be applied... ($i/60)";
+            sleep 2;
+          done
+          echo "Migrations not applied in time";
+          docker compose -f docker-compose.ci.yml ps;
+          docker compose -f docker-compose.ci.yml logs --no-color;
+          exit 1
+
       - name: Wait for health endpoints
         run: |
           for i in {1..30}; do
