@@ -126,7 +126,7 @@ jobs:
           echo "--- docker compose version ---"
           docker compose version || true
           echo "--- docker info (short) ---"
-          docker info --format '{{json .}}' 2>/dev/null || true
+           docker info --format '{{json .}}' 2>/dev/null || true
 
       - name: Build Docker images
         run: |
