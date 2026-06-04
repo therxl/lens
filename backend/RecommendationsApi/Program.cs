@@ -86,8 +86,24 @@ Console.WriteLine("[STARTUP] Initializing RecommendationsApi database...");
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<RecommendationsDbContext>();
-    db.Database.EnsureCreated();
-    Console.WriteLine("[STARTUP] Database initialized");
+    try
+    {
+        db.Database.Migrate();
+        Console.WriteLine("[STARTUP] Database migrations applied");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Warning: database migration failed at startup: " + ex.Message);
+        if (app.Environment.IsDevelopment())
+        {
+            db.Database.EnsureCreated();
+            Console.WriteLine("[STARTUP] Database ensured created (development fallback)");
+        }
+        else
+        {
+            throw;
+        }
+    }
 }
 
 if (app.Environment.IsDevelopment())

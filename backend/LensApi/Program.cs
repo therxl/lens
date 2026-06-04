@@ -105,71 +105,26 @@ Console.Out.Flush();
 
 using (var scope = app.Services.CreateScope())
 {
-    Console.WriteLine("[STARTUP] Creating DB scope...");
-    Console.Out.Flush();
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    Console.WriteLine("[STARTUP] Got context, ensuring DB created...");
-    Console.Out.Flush();
-    context.Database.EnsureCreated();
-    Console.WriteLine("[STARTUP] DB ensured created");
-
-    // Ensure new auth table exists for existing SQLite databases created before refresh-flow.
     try
     {
-        Console.WriteLine("[STARTUP] Creating refresh_tokens table...");
-        Console.Out.Flush();
-        context.Database.ExecuteSqlRaw(@"
-            CREATE TABLE IF NOT EXISTS refresh_tokens (
-                id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL,
-                token_hash TEXT NOT NULL,
-                expires_at TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                revoked_at TEXT NULL,
-                replaced_by_token_hash TEXT NULL,
-                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-            );
-        ");
-        Console.WriteLine("[STARTUP] refresh_tokens table ensured");
-        Console.Out.Flush();
+        // Apply EF Core migrations at startup to keep schema in sync
+        context.Database.Migrate();
+        Console.WriteLine("[STARTUP] DB migrations applied");
     }
-    catch (SqliteException ex)
+    catch (Exception ex)
     {
-        Console.WriteLine($"[DB] refresh_tokens ensure failed: {ex.Message}");
-    }
-
-    if (!context.Users.Any(u => u.Username == "user"))
-    {
-        Console.WriteLine("[STARTUP] Creating default user...");
-        Console.Out.Flush();
-        context.Users.Add(new User
+        Console.WriteLine("Warning: database migration failed at startup: " + ex.Message);
+        // In development fallback to EnsureCreated for faster iterations
+        if (app.Environment.IsDevelopment())
         {
-            Id = Guid.NewGuid().ToString(),
-            Username = "user",
-            PasswordHash = "1234",
-            Mode = "user",
-            CreatedAt = DateTime.UtcNow
-        });
-        context.SaveChanges();
-        Console.WriteLine("[STARTUP] Default user created");
-        Console.Out.Flush();
-    }
-
-    if (!context.Users.Any(u => u.Username == "admin"))
-    {
-        Console.WriteLine("[STARTUP] Creating default admin...");
-        Console.Out.Flush();
-        context.Users.Add(new User
+            context.Database.EnsureCreated();
+            Console.WriteLine("[STARTUP] DB ensured created (development fallback)");
+        }
+        else
         {
-            Id = Guid.NewGuid().ToString(),
-            Username = "admin",
-            PasswordHash = "admin",
-            Mode = "user",
-            CreatedAt = DateTime.UtcNow
-        });
-        context.SaveChanges();
-        Console.WriteLine("[STARTUP] Default admin created");
-        Console.Out.Flush();
+            throw;
+        }
     }
 }
 
