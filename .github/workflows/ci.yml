@@ -118,7 +118,7 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Docker: print versions and config
+      - name: "Docker: print versions and config"
         shell: bash
         run: |
           echo "--- docker version ---"
