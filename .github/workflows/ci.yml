@@ -162,16 +162,37 @@ jobs:
 
       - name: Wait for DB migrations
         run: |
-          # Increase retries and sleep to allow DB migrations to complete in CI
+          # Discover migration ids under backend/*/Migrations and require they appear in the migrations table
+          MIG_FILES=$(ls backend/*/Migrations/[0-9]*_*.cs 2>/dev/null || true)
+          EXPECTED_MIGS=()
+          for f in $MIG_FILES; do
+            M=$(basename "$f" .cs)
+            EXPECTED_MIGS+=("$M")
+          done
+
+          if [ ${#EXPECTED_MIGS[@]} -eq 0 ]; then
+            echo "No migrations found in backend/*/Migrations; skipping explicit check"
+            exit 0
+          fi
+
+          echo "Expecting migrations: ${EXPECTED_MIGS[*]}"
+
+          # Poll Postgres until all expected migration ids are present
           for i in {1..120}; do
-            # try to query migrations table; -t removes headers
-            COUNT=$(docker compose -f docker-compose.ci.yml exec -T postgres psql -U postgres -d lens_bd -t -c 'SELECT count(*) FROM "__EFMigrationsHistory";' 2>/dev/null | tr -d '[:space:]')
-            if [ -n "$COUNT" ] && [ "$COUNT" -gt 0 ]; then
-              echo "Migrations applied (count=$COUNT)"
+            FOUND=0
+            for mig in "${EXPECTED_MIGS[@]}"; do
+              CNT=$(docker compose -f docker-compose.ci.yml exec -T postgres psql -U postgres -d lens_bd -t -c "SELECT count(*) FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = '$mig';" 2>/dev/null | tr -d '[:space:]') || CNT=0
+              if [ -n "$CNT" ] && [ "$CNT" -gt 0 ]; then
+                FOUND=$((FOUND+1))
+              fi
+            done
+
+            if [ "$FOUND" -eq "${#EXPECTED_MIGS[@]}" ]; then
+              echo "All migrations applied (found=$FOUND)"
               exit 0
             fi
-            echo "Waiting for migrations to be applied... ($i/120)"
-            # Every 12th iteration dump brief diagnostics
+
+            echo "Waiting for migrations to be applied... ($i/120) (found=$FOUND/${#EXPECTED_MIGS[@]})"
             if [ $((i % 12)) -eq 0 ]; then
               echo "--- DIAGNOSTICS: docker compose ps ---"
               docker compose -f docker-compose.ci.yml ps || true
@@ -180,6 +201,7 @@ jobs:
             fi
             sleep 5
           done
+
           echo "Migrations not applied in time"
           docker compose -f docker-compose.ci.yml ps
           docker compose -f docker-compose.ci.yml logs --no-color
