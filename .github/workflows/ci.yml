@@ -120,15 +120,23 @@ jobs:
 
       - name: Wait for DB migrations
         run: |
-          for i in {1..60}; do
+          # Increase retries and sleep to allow DB migrations to complete in CI
+          for i in {1..120}; do
             # try to query migrations table; -t removes headers
             COUNT=$(docker compose -f docker-compose.ci.yml exec -T postgres psql -U postgres -d lens_bd -t -c 'SELECT count(*) FROM "__EFMigrationsHistory";' 2>/dev/null | tr -d '[:space:]')
             if [ -n "$COUNT" ] && [ "$COUNT" -gt 0 ]; then
               echo "Migrations applied (count=$COUNT)"
               exit 0
             fi
-            echo "Waiting for migrations to be applied... ($i/60)"
-            sleep 2
+            echo "Waiting for migrations to be applied... ($i/120)"
+            # Every 12th iteration dump brief diagnostics
+            if [ $((i % 12)) -eq 0 ]; then
+              echo "--- DIAGNOSTICS: docker compose ps ---"
+              docker compose -f docker-compose.ci.yml ps || true
+              echo "--- DIAGNOSTICS: recent logs (last 30s) ---"
+              docker compose -f docker-compose.ci.yml logs --no-color --since 30s || true
+            fi
+            sleep 5
           done
           echo "Migrations not applied in time"
           docker compose -f docker-compose.ci.yml ps
@@ -137,15 +145,19 @@ jobs:
 
       - name: Wait for health endpoints
         run: |
-          for i in {1..30}; do
+          for i in {1..60}; do
             if curl -fsS http://localhost:5000/health >/dev/null \
               && curl -fsS http://localhost:5126/health >/dev/null \
               && curl -fsS http://localhost:5127/health >/dev/null; then
               echo "Health checks OK";
               exit 0;
             fi
-            echo "Waiting for services...";
-            sleep 2;
+            echo "Waiting for services... ($i/60)";
+            if [ $((i % 10)) -eq 0 ]; then
+              echo "--- DIAGNOSTICS: docker compose ps ---"
+              docker compose -f docker-compose.ci.yml ps || true
+            fi
+            sleep 5;
           done
           echo "Health checks failed";
           docker compose -f docker-compose.ci.yml ps;
