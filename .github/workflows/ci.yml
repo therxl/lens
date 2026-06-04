@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: ["main", "master"]
+    # include feature branch used for CI work so runs are visible when pushing to left_labs
+    branches: ["main", "master", "left_labs"]
   pull_request:
-    branches: ["main", "master"]
+    branches: ["main", "master", "left_labs"]
 
 jobs:
   frontend:
@@ -102,11 +103,22 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Docker: print versions and config
+        shell: bash
+        run: |
+          echo "--- docker version ---"
+          docker --version || true
+          echo "--- docker compose version ---"
+          docker compose version || true
+          echo "--- docker info (short) ---"
+          docker info --format '{{json .}}' 2>/dev/null || true
+
       - name: Build Docker images
         run: |
-          docker build --no-cache --progress=plain -f backend/LensApi/Dockerfile -t lens-lensapi:ci .
-          docker build --no-cache --progress=plain -f backend/RecommendationsApi/Dockerfile -t lens-recommendationsapi:ci .
-          docker build --no-cache --progress=plain -f backend/ApiGateway/Dockerfile -t lens-apigateway:ci .
+          # pull base images to avoid cache surprises in CI, and produce verbose output for diagnostics
+          docker build --pull --no-cache --progress=plain -f backend/LensApi/Dockerfile -t lens-lensapi:ci ./backend/LensApi
+          docker build --pull --no-cache --progress=plain -f backend/RecommendationsApi/Dockerfile -t lens-recommendationsapi:ci ./backend/RecommendationsApi
+          docker build --pull --no-cache --progress=plain -f backend/ApiGateway/Dockerfile -t lens-apigateway:ci ./backend/ApiGateway
 
   integration-smoke:
     runs-on: ubuntu-latest
@@ -114,6 +126,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Docker compose diagnostics
+        shell: bash
+        run: |
+          echo "--- docker and compose versions ---"
+          docker --version || true
+          docker compose version || true
+          echo "--- docker-compose.ci.yml config ---"
+          docker compose -f docker-compose.ci.yml config || true
 
       - name: Start services
         run: docker compose -f docker-compose.ci.yml up -d --build
