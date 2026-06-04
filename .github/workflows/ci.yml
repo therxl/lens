@@ -151,6 +151,12 @@ jobs:
           echo "--- docker-compose.ci.yml config ---"
           docker compose -f docker-compose.ci.yml config || true
 
+      - name: Ensure clean docker state
+        shell: bash
+        run: |
+          # ensure no leftover containers/volumes from previous runs
+          docker compose -f docker-compose.ci.yml down -v || true
+
       - name: Start services
         run: docker compose -f docker-compose.ci.yml up -d --build
 
