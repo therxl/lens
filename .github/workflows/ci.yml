@@ -8,6 +8,21 @@ on:
     branches: ["main", "master", "left_labs"]
 
 jobs:
+  ci-diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Print runner diagnostics
+        shell: bash
+        run: |
+          echo "Runner: $(uname -a)"
+          echo "Disk usage:"; df -h || true
+          echo "Memory:"; free -h || true
+          echo "Env vars (selected):"; env | grep GH || true
+          echo "--- docker info ---"; docker --version || true; docker compose version || true
+
   frontend:
     runs-on: ubuntu-latest
     steps:
