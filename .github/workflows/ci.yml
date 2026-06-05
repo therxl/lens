@@ -163,10 +163,14 @@ jobs:
       - name: Wait for DB migrations
         run: |
           # Discover migration ids under backend/*/Migrations and require they appear in the migrations table
-          MIG_FILES=$(ls backend/*/Migrations/[0-9]*_*.cs 2>/dev/null || true)
+          # List migration files but exclude designer and snapshot files
+          MIG_FILES=$(ls backend/*/Migrations/[0-9]*_*.cs 2>/dev/null | grep -v '\.Designer\.cs$' | grep -v 'ModelSnapshot.cs' || true)
           EXPECTED_MIGS=()
           for f in $MIG_FILES; do
             M=$(basename "$f" .cs)
+            # strip accidental suffixes like .Designer if present
+            M=${M%.Designer}
+            M=${M%ModelSnapshot}
             EXPECTED_MIGS+=("$M")
           done
 
